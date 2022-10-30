@@ -3,9 +3,10 @@ import random
 import time
 
 pygame.init()
-X = 1280
-Y = 720
+X = 1280//60*60
+Y = 720//60*60
 
+gameover = False
 direction = 0
 screen = pygame.display.set_mode((X,Y))
 green = (0,255,0)
@@ -21,6 +22,9 @@ snakes.append(snake_head)
 snake_speed = snake_size
 food_x = random.randint(0,1280-50)//60*60
 food_y = random.randint(0,720-50)//60*60
+
+score = 0 
+
 timepass = 0
 font = pygame.font.Font('freesansbold.ttf', 32)
 text = font.render('Ngu', True, green, blue)
@@ -30,6 +34,7 @@ textRect.center = (X // 2, Y // 2)
 
 def move_snake(event):
     global direction
+    global score
     if event.type == pygame.KEYDOWN:
         if event.key == pygame.K_LEFT:
             if direction == 2:
@@ -64,11 +69,28 @@ while True:
         move_snake(event)
     screen.fill((0, 0, 0))
 
-    for i in range(1280//snake_size):
+    for i in range((1280//snake_size)+1):
         pygame.draw.line(screen, white, [snake_size*i,0], [snake_size*i,720])
 
     food = pygame.draw.rect(screen,green,(food_x,food_y, snake_size,snake_size))
-    
+
+    if len(snakes) > 4:
+        if snakes[0] in snakes[1:]:
+            direction = 0
+            snakes = [[0,30],[30,30]]
+            text_score = font.render(f"score : {score}", True, green, blue)
+ 
+    try:
+        if [food_x, food_y] in snakes:
+            score += 1
+            snakes.insert(0,[food_x, food_y])
+            x = pygame.draw.rect(screen, green, (snake[0], snake[1],snake_size,snake_size))
+            food_x = random.randint(0,1280-50)//60*60
+            food_y = random.randint(0,720-50)//60*60
+    except:
+        ...
+
+   
     if direction == 1:
         snakes.insert(0,[(snakes[0][0]-snake_speed)//60*60,snakes[0][1]])
         snakes.pop()
@@ -82,34 +104,30 @@ while True:
 
     if direction == 4:
         snakes.insert(0,[snakes[0][0],(snakes[0][1]-snake_speed)//60*60])
-        snakes.pop()   
-    try:
-        if [food_x, food_y] in snakes:
-            snakes.insert(0,[food_x, food_y])
-            x = pygame.draw.rect(screen, green, (snake[0], snake[1],snake_size,snake_size))
-            food_x = random.randint(0,1280-50)//60*60
-            food_y = random.randint(0,720-50)//60*60
+        snakes.pop()  
 
-    except:
+    try:
+        screen.blit(text_score, textRect)
+    except: 
         ...
-    if len(snakes) > 4:
-        if snakes[0] in snakes[2:]:
-            direction = 0
-            screen.blit(text, textRect)
+ 
+
 
     for i, snake in enumerate(snakes):
+        if snake[0] >= 1260:
+            snake[0] = 0
+        if snake[0] < 0:
+            snake[0] = 1200
+        if snake[1] >= 720:
+            snake[1] = 0
+        if snake[1] < 0:
+            snake[1] = 720-60
         if i == 0:
             x = pygame.draw.rect(screen, red, (snake[0], snake[1],snake_size,snake_size))
         else:
             x = pygame.draw.rect(screen, green, (snake[0], snake[1],snake_size,snake_size))
-        if snake[0] > 1280:
-            snake[0] = 0
-        if snake[0] < 0:
-            snake[0] = 1280
-        if snake[1] > 720:
-            snake[1] = 0
-        if snake[1] < 0:
-            snake[1] = 720
+
+
     pygame.display.update()
     pygame.display.flip() 
     clock.tick(60)         # wait until next frame (at 60 FPS)
